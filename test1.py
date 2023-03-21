@@ -5,6 +5,7 @@ import numpy as np
 position_limit = []
 last_buy =[0]
 last_sell =[0]
+TP_list = []
 
 class Trader:
 
@@ -33,7 +34,23 @@ class Trader:
                 # Initialize the list of Orders to be sent as an empty list
                 orders: list[Order] = []
 
-                acceptable_price = 1
+                TP = float(min(order_depth.sell_orders.keys()) + max(order_depth.buy_orders.keys()))/2
+                TP_list.append(TP)
+                n = int(state.timestamp/100)
+                m=50
+                d = 2
+            
+                if n>m:
+                    SMA = np.mean(TP_list[n-m-1:n])
+                    UB = SMA + d*np.std(TP_list[n-m-1:n])
+                    MB = np.sum(TP_list[n-m-1:n])/m
+                    LB = SMA - d*np.std(TP_list[n-m-1:n])
+                    
+                else:
+                    SMA = TP_list[n-1]
+                    UB = SMA + d*np.std(TP_list)
+                    MB = TP_list[n-1]
+                    LB = SMA - d*np.std(TP_list)
 
                 best_bid = max(order_depth.buy_orders.keys())
                 best_bid_volume = order_depth.buy_orders[best_bid]
@@ -41,30 +58,19 @@ class Trader:
                 best_ask = min(order_depth.sell_orders.keys())
                 best_ask_volume = order_depth.sell_orders[best_ask]
 
-
-                # If statement checks if there are any SELL orders in the PEARLS market
-                if len(order_depth.sell_orders) > 0 and current_position[0] ==0:
-
-                    # Sort all the available sell orders by their price,
-                    # and select only the sell order with the lowest price
-                    best_ask = min(order_depth.sell_orders.keys())
-                    best_ask_volume = order_depth.sell_orders[best_ask]
-
-                    # Check if the lowest ask (sell order) is lower than the above defined fair value
-                    if best_ask < acceptable_price:
-
-                        # In case the lowest ask is lower than our fair value,
-                        # This presents an opportunity for us to buy cheaply
-                        # The code below therefore sends a BUY order at the price level of the ask,
-                        # with the same quantity
-                        # We expect this order to trade with the sell order
+                if current_position[0] ==0:
+                    if TP > UB:
+                        print("SELL", str(best_bid_volume) + "x", best_bid)
+                        orders.append(Order(product, best_bid, -best_bid_volume))
+                        last_sell.append(best_bid)
+                        last_sell.pop(0)
+                    elif TP < LB:
                         print("BUY", str(-best_ask_volume) + "x", best_ask)
-                        orders.append(Order(product, best_ask, -best_ask_volume))
+                        orders.append(Order(product, best_ask, best_ask_volume))
                         last_buy.append(best_ask)
                         last_buy.pop(0)
-                
+              
                 if last_buy[0] < best_bid and current_position[0] >0:
-                    
                     print("SELL", str(best_bid_volume) + "x", best_bid)
                     orders.append(Order(product, best_bid, -best_bid_volume))
                     last_sell.append(best_bid)
@@ -76,6 +82,7 @@ class Trader:
                     last_buy.append(best_ask)
                     last_buy.pop(0)
 
+                print(f'lastbuy {last_buy[0]} lastsell {last_sell[0]} position {current_position[0]}')
                 # Add all the above orders to the result dict
                 result[product] = orders
 
