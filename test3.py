@@ -19,8 +19,6 @@ class Trader:
 
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
-
-            # Check if the current product is the 'PEARLS' product, only then run the order logic
             if product == 'BANANAS':
 
                 # Retrieve the Order Depth containing all the market BUY and SELL orders for PEARLS
@@ -60,24 +58,24 @@ class Trader:
 
                 if current_position[0] ==0:
                     if TP > UB:
-                        print("SELL", str(best_bid_volume) + "x", best_bid)
+                        print("BANANAS" "SELL", str(best_bid_volume) + "x", best_bid)
                         orders.append(Order(product, best_bid, -best_bid_volume))
                         last_sell.append(best_bid)
                         last_sell.pop(0)
                     elif TP < LB:
-                        print("BUY", str(-best_ask_volume) + "x", best_ask)
+                        print("BANANAS" "BUY", str(-best_ask_volume) + "x", best_ask)
                         orders.append(Order(product, best_ask, best_ask_volume))
                         last_buy.append(best_ask)
                         last_buy.pop(0)
               
                 if last_buy[0] < best_bid and current_position[0] >0:
-                    print("SELL", str(best_bid_volume) + "x", best_bid)
+                    print("BANANAS" "SELL", str(best_bid_volume) + "x", best_bid)
                     orders.append(Order(product, best_bid, -best_bid_volume))
                     last_sell.append(best_bid)
                     last_sell.pop(0)
                     
                 if last_sell[0] > best_ask and current_position[0] <0:
-                    print("BUY", str(-best_ask_volume) + "x", best_ask)
+                    print("BANANAS" "BUY", str(-best_ask_volume) + "x", best_ask)
                     orders.append(Order(product, best_ask, -best_ask_volume))
                     last_buy.append(best_ask)
                     last_buy.pop(0)
@@ -85,29 +83,8 @@ class Trader:
                 print(f'lastbuy {last_buy[0]} lastsell {last_sell[0]} position {current_position[0]}')
                 # Add all the above orders to the result dict
                 result[product] = orders
-
-                # Return the dict of orders
-                # These possibly contain buy or sell orders for PEARLS
-                # Depending on the logic above
-                
-            # elif product == 'PEARLS':
-                
-            #     order_depthp: OrderDepth = state.order_depths[product]
-            #     current_positionp =list(state.position.values())
-                
-            #     ordersp: list[Order] = []
-                
-            #     if min(list(order_depthp.buy_orders)) > 10000:
-            #         best_bid = min(order_depth.buy_orders.keys())
-            #         best_bid_volume = order_depth.buy_orders[best_bid]
-            #         print("SELL", str(best_bid_volume) + "x", best_bid)
-            #         orders.append(Order(product, best_bid, -best_bid_volume))
-            #     elif max(list(order_depthp.sell_orders)) < 10000:
-            #         best_ask = max(order_depth.sell_orders.keys())
-            #         best_ask_volume = order_depth.sell_orders[best_ask]
-            #         print("BUY", str(-best_ask_volume) + "x", best_ask)
-            #         orders.append(Order(product, best_ask, -best_ask_volume))
-                    
-            #     result[product] = ordersp
-            
+            else:
+                print('PEARLS')
         return result
+    
+    
