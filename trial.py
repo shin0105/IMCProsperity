@@ -1,5 +1,8 @@
 import numpy as np
 
-X = {'a':10, 'b': 15, 'c': 100}
-product = 'a'
-print((list(X))[0])
+position = {
+	"PRODUCT1": 3,
+	"PRODUCT2": -5
+}
+product = 'PRODUCT1'
+print(position[product])
