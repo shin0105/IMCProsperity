@@ -39,7 +39,7 @@ class Trader:
                 TP = float(min(order_depth.sell_orders.keys()) + max(order_depth.buy_orders.keys()))/2
                 TP_list.append(TP)
                 n = int(state.timestamp/100)
-                m=50
+                m=30
                 d = 2
             
                 if n>m:

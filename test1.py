@@ -37,7 +37,7 @@ class Trader:
                 TP = float(min(order_depth.sell_orders.keys()) + max(order_depth.buy_orders.keys()))/2
                 TP_list.append(TP)
                 n = int(state.timestamp/100)
-                m=50
+                m=30
                 d = 2
             
                 if n>m:
@@ -89,4 +89,25 @@ class Trader:
                 # Return the dict of orders
                 # These possibly contain buy or sell orders for PEARLS
                 # Depending on the logic above
+                
+            elif product == 'PEARLS':
+                
+                order_depthp: OrderDepth = state.order_depths[product]
+                current_positionp =list(state.position.values())
+                
+                ordersp: list[Order] = []
+                
+                if min(list(order_depthp.buy_orders)) > 10000:
+                    best_bid = min(order_depth.buy_orders.keys())
+                    best_bid_volume = order_depth.buy_orders[best_bid]
+                    print("SELL", str(best_bid_volume) + "x", best_bid)
+                    orders.append(Order(product, best_bid, -best_bid_volume))
+                elif max(list(order_depthp.sell_orders)) < 10000:
+                    best_ask = max(order_depth.sell_orders.keys())
+                    best_ask_volume = order_depth.sell_orders[best_ask]
+                    print("BUY", str(-best_ask_volume) + "x", best_ask)
+                    orders.append(Order(product, best_ask, -best_ask_volume))
+                    
+                result[product] = ordersp
+            
         return result
