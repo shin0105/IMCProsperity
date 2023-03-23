@@ -1,8 +1,15 @@
-import numpy as np
+from datamodel import Listing, OrderDepth, Trade, TradingState
+import json
+from typing import Dict, List
+from json import JSONEncoder
 
 position = {
-	"PRODUCT1": 3,
-	"PRODUCT2": -5
+	"100": 3,
+	"200": -5,
+    "300": 10
 }
-product = 'PRODUCT1'
-print(position[product])
+
+x =max(list(position.keys()))
+
+print(x)
+print(position[x])

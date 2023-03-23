@@ -25,7 +25,7 @@ class Trader:
                 order_depth: OrderDepth = state.order_depths[product]
 
                 best_ask = min(order_depth.sell_orders.keys())
-                best_ask_volume = -10
+                best_ask_volume = -1
 
                 if len(position) == 0:
                     current_position = 0
@@ -44,7 +44,7 @@ class Trader:
                 order_depth: OrderDepth = state.order_depths[product]
 
                 best_ask = min(order_depth.sell_orders.keys())
-                best_ask_volume = -10
+                best_ask_volume = -2
 
                 if len(position) == 0:
                     current_position = 0
@@ -64,7 +64,7 @@ class Trader:
                 order_depth: OrderDepth = state.order_depths[product]
 
                 best_ask = min(order_depth.sell_orders.keys())
-                best_ask_volume = -10
+                best_ask_volume = -3
 
                 if len(position) == 0:
                     current_position = 0
@@ -84,7 +84,7 @@ class Trader:
                 order_depth: OrderDepth = state.order_depths[product]
 
                 best_ask = min(order_depth.sell_orders.keys())
-                best_ask_volume = -10
+                best_ask_volume = -4 
 
                 if len(position) == 0:
                     current_position = 0
