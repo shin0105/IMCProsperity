@@ -290,8 +290,8 @@ class Trader:
 
                 elif macd - macd_signal < 0:
                     LOT_SIZE = int((600 + current_position) / 5)
-                    best_bid = max(order_depthC.buy_orders.keys()) #max(TP - 0.2 * (TP - max(order_depthC.buy_orders.keys())),
-                                   #max(order_depthC.buy_orders, key=order_depthC.buy_orders.get))
+                    best_bid = max(TP - 0.2 * (TP - max(order_depthC.buy_orders.keys())),
+                                   max(order_depthC.buy_orders, key=order_depthC.buy_orders.get))
                     print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
                     ordersC.append(Order(product, best_bid, -LOT_SIZE))
                     print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
