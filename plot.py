@@ -8,11 +8,11 @@ def show_signal(logfile):
     with open(logfile) as f:
             for line in f.readlines():
                 words = line.split(' ')
-                if 'signal2' in words:
-                    pin_idx = words.index('signal2') + 1
+                if 'TPPi' in words:
+                    pin_idx = words.index('TPPi') + 3
                     signal2.append(float(words[pin_idx]))
-                if 'signal1' in words:
-                    co_idx = words.index('signal1') + 1
+                if 'TPC' in words:
+                    co_idx = words.index('TPC') + 3
                     signal1.append(float(words[co_idx]))
             
     signal1 = np.array(signal1)
@@ -37,11 +37,11 @@ df = pd.read_csv('.\simulation_round2.csv', sep=';')
 
 fig, ax1 = plt.subplots()
 
-color = 'tab:red'
+color = 'tab:green'
 ax1.set_xlabel('time (s)')
 ax1.set_ylabel('POL', color=color)
-ax1.plot(df[df['product'] == 'PINACOLADA']['timestamp'], df[df['product'] == 'PINACOLADA']['profit_and_loss'], color=color)
-#ax1.set_ylim(7940, 8120)
+ax1.plot(df[df['product'] == 'PINA_COLADAS']['timestamp'], df[df['product'] == 'PINA_COLADAS']['profit_and_loss'], color=color)
+#ax1.set_ylim(0, 10000)
 ax1.tick_params(axis='y', labelcolor=color)
 
 ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
@@ -49,7 +49,7 @@ ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 color = 'tab:blue'
 ax2.set_ylabel('PINACOLADA', color=color)  # we already handled the x-label with ax1
 ax2.plot(df[df['product'] == 'PINA_COLADAS']['timestamp'], df[df['product'] == 'PINA_COLADAS']['mid_price'], color=color)
-ax2.set_ylim(14800, 15300)
+ax2.set_ylim(14900, 15100)
 ax2.tick_params(axis='y', labelcolor=color)
 
 ax3 = ax1.twinx() 
@@ -58,6 +58,7 @@ color = 'tab:red'
 ax3.set_ylabel('PINACOLADA signal', color=color)  # we already handled the x-label with ax1
 ax3.plot(df[df['product'] == 'PINA_COLADAS']['timestamp'], signal2, color=color)
 ax3.axhline(y=0,c='black')
+ax3.set_ylim(-10,10)
 ax3.tick_params(axis='y', labelcolor=color)
 
 fig.tight_layout()  # otherwise the right y-label is slightly clipped
