@@ -3,7 +3,7 @@ from datamodel import OrderDepth, TradingState, Order
 import numpy as np
 
 position_limit = []
-TP_list = []
+SMA_list = []
 
 class Trader:
 
