@@ -49,7 +49,7 @@ ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
 color = 'tab:blue'
 ax2.set_ylabel('PINACOLADA', color=color)  # we already handled the x-label with ax1
 ax2.plot(df[df['product'] == 'PINA_COLADAS']['timestamp'], df[df['product'] == 'PINA_COLADAS']['mid_price'], color=color)
-ax2.set_ylim(14900, 15100)
+ax2.set_ylim(14500, 15000)
 ax2.tick_params(axis='y', labelcolor=color)
 
 ax3 = ax1.twinx() 
