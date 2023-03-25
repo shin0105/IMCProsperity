@@ -119,6 +119,7 @@ class Trader:
         # Initialize the method output dict as an empty dict
         result = {}
         position = state.position
+        print()
        
 
         # Iterate over all the keys (the available products) contained in the order depths
@@ -144,9 +145,9 @@ class Trader:
                 ):
                     current_mid_price = 1 / 2 * (best_ask + best_bid)
                     pearl.update_avg_price(current_mid_price)
-                    print(
-                        f"current mid price: {current_mid_price}, avg mid price: {pearl.avg_price} \n"
-                    )
+                    # print(
+                    #     f"current mid price: {current_mid_price}, avg mid price: {pearl.avg_price} \n"
+                    # )
 
                 max_buy_volume = abs(PEARLS_POSITION_LIMITS - current_position)
                 max_sell_volume = -abs(-PEARLS_POSITION_LIMITS - current_position)
@@ -159,12 +160,12 @@ class Trader:
                     ordersP.append(Order(product, best_bid, max_sell_volume))
                     result[product] = ordersP
 
-                    print(
-                        f"Product: {product}/ Position: {current_position}\n"
-                        f"BUY at price {best_ask} with volume {max_buy_volume}\n"
-                        f"Sell at price {best_bid} with volume {max_sell_volume}\n"
-                    )
-                    print("")
+                    # print(
+                    #     f"Product: {product}/ Position: {current_position}\n"
+                    #     f"BUY at price {best_ask} with volume {max_buy_volume}\n"
+                    #     f"Sell at price {best_bid} with volume {max_sell_volume}\n"
+                    # )
+                    # print("")
 
             elif product == 'BANANAS':
                 ordersB: List[Order] = []
@@ -197,11 +198,11 @@ class Trader:
                     ordersB.append(Order(product, best_bid, max_sell_volume))
                     result[product] = ordersB
 
-                    print(
-                        f"\nProduct: {product}/ Position: {current_position}\n"
-                        f"BUY at price {best_ask} with volume {max_buy_volume}\n"
-                        f"Sell at price {best_bid} with volume {max_sell_volume}\n"
-                    )
+                    # print(
+                    #     f"\nProduct: {product}/ Position: {current_position}\n"
+                    #     f"BUY at price {best_ask} with volume {max_buy_volume}\n"
+                    #     f"Sell at price {best_bid} with volume {max_sell_volume}\n"
+                    # )
                 result[product] = ordersB
 
             elif product == 'COCONUTS':
@@ -220,6 +221,7 @@ class Trader:
 
                 n = 10
                 m = int(state.timestamp/100)
+                print(f"current time is {m}")
 
                 SMAC = find_SMA(n, m, TPC, TP_listC)
 
@@ -227,6 +229,7 @@ class Trader:
 
                 min_ask = min(order_depthC.sell_orders.keys())
 
+<<<<<<< HEAD
                 max_bid = max(order_depthC.buy_orders.keys())
 
                 print(f"Current time is {m} product is {product} TP is {TPC} UB is {UB} LB is {LB} min_ask is {min_ask} max_bid is {max_bid}")
@@ -238,10 +241,19 @@ class Trader:
                     ordersC.append(Order(product, best_ask, LOT_SIZE))
                     
                 elif TPC > UB:
+=======
+                if TPC > UB:
+>>>>>>> 694fd0d1bb11e8a3d1e41cffbd84578c59905b4d
                     LOT_SIZE = int((600 + current_position))
                     best_bid = max(order_depthC.buy_orders.keys()) #max(TPC - 0.2*(TPC-max(order_depthC.buy_orders.keys())), max(order_depthC.buy_orders, key=order_depthC.buy_orders.get))
                     print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
                     ordersC.append(Order(product, best_bid, -LOT_SIZE))
+                    
+                elif TPC < LB:
+                    LOT_SIZE = int((600 - current_position))
+                    best_ask = int(min(min(order_depthC.sell_orders.keys()), 0.4*(min(order_depthC.buy_orders.keys())-TPC)+TPC))
+                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
+                    ordersC.append(Order(product, best_ask, LOT_SIZE))
                     
              
                 result[product] = ordersC
