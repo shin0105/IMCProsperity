@@ -1,29 +1,8 @@
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order
 import numpy as np
-np.seterr(divide='ignore', invalid='ignore')
 import math
 
-TP_list = []
-SMAshort_list = []
-SMAlong_list = []
-EMAshort_list = [0]
-EMAlong_list = [0]
-macd_list = []
-
-TP_list1 = []
-SMAshort_list1 = [0]
-SMAlong_list1 = [0]
-EMAshort_list1 = [0]
-EMAlong_list1 = [0]
-macd_list1 = []
-
-TP_list2 = []
-SMAshort_list2 = [0]
-SMAlong_list2 = [0]
-EMAshort_list2 = [0]
-EMAlong_list2 = [0]
-macd_list2 = []
 
 def get_mid_price(orders: dict, is_weighted: bool = False):
     mid_price = 0
@@ -102,7 +81,7 @@ class Banana:
             else:
                 self.position = 1
                 return self.position
-            
+
 def find_SMA(n, m, TP, TP_list):
     if m>n:
         SMA = np.mean(TP_list[m-n-1:m])
@@ -110,31 +89,16 @@ def find_SMA(n, m, TP, TP_list):
     else:
         SMA = TP
     return SMA
-            
-def macd_signal(n1, n2, n3, m, TP, TP_list, EMAlong_list, EMAshort_list, macd_list):
-    k1 = 2/(n1+1)
-    k2 = 2/(n2+1)
-    SMA1 = find_SMA(n1, m, TP, TP_list)
-    SMA2 = find_SMA(n2, m, TP, TP_list)
 
-    EMAlong = k2*SMA2 + (1-k2)*EMAlong_list[m-1]
-
-    EMAshort = k1*SMA1 + (1-k1)*EMAshort_list[m-1]
-
-    macd = EMAshort - EMAlong
-
-    macdhist = find_SMA(n3, m, macd, macd_list)
-
-    signal = macd - macdhist
-    
-    return EMAlong, EMAshort, macd, signal
-
-
-
-
-
-
-
+def bollinger_band(n, m, SMA, TP_list, d):
+    if m>n:
+        UB = SMA + d*np.std(TP_list[m-n-1:m])
+        LB = SMA - d*np.std(TP_list[m-n-1:m])
+    else:
+        SMA = TP_list[m]
+        UB = SMA + d*np.std(TP_list)
+        LB = SMA - d*np.std(TP_list)
+    return UB, LB
 
 
 # Initialize class
@@ -142,6 +106,8 @@ pearl = Pearl()
 banana = Banana()
 
 prev_position = 0
+
+TP_listC = []
 
 class Trader:
 
@@ -153,6 +119,7 @@ class Trader:
         # Initialize the method output dict as an empty dict
         result = {}
         position = state.position
+       
 
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
@@ -160,6 +127,7 @@ class Trader:
             print(position.values())
             # Check if the current product is the 'PEARLS' product, only then run the order logic
             if product == 'PEARLS':
+
                 ordersP: List[Order] = []
                 if (len(position) == 0) or (product not in position.keys()):
                     current_position = 0
@@ -246,107 +214,112 @@ class Trader:
                     current_position = 0
                 else:
                     current_position = position[product]
+                
+                TPC = float(min(order_depthC.sell_orders.keys()) + max(order_depthC.buy_orders.keys()))/2
+                TP_listC.append(TPC)
 
-                n1 = 12
-                n2 = 26
-                n3 = 9
-
+                n = 20
                 m = int(state.timestamp/100)
 
-                TP = float(min(order_depthC.sell_orders.keys()) + max(order_depthC.buy_orders.keys()))/2
-                TP_list.append(TP)
+                SMAC = find_SMA(n, m, TPC, TP_listC)
 
-                
-                EMAlong, EMAshort, macd, signal = macd_signal(n1, n2, n3, m, TP, TP_list, EMAlong_list, EMAshort_list, macd_list)
+                UB, LB = bollinger_band(n, m, SMAC, TP_listC, 1.7)
 
-                EMAlong_list.append(EMAlong)
-                EMAshort_list.append(EMAshort)
-                macd_list.append(macd)
-                
+                print(f"{product} TP: {TPC} UB: {UB} LB: {LB}")
 
-                print(f"TPC {TP} signal {signal} EMAshort {EMAshort_list[m]} EMAlong {EMAlong_list[m]}")
-                if m > n2:
-                    price_adjustment = np.std(SMAlong_list[m-n2-1:m]) / math.sqrt(26)
-                else:
-                    price_adjustment = np.std(SMAlong_list)
-
-                acceptable_price = TP
-
-
-                if signal > 0:
-                    # if current_position < -500:
-                    #     LOT_SIZE = int((600 - current_position)/20)
-                    #     best_ask = min(order_depth.sell_orders.keys()) + 3*price_adjustment #int(min(min(order_depth.sell_orders.keys()), acceptable_price + 3 * price_adjustment))
-                    #     print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
-                    #     ordersC.append(Order(product, best_ask, LOT_SIZE))
-                    #     print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
-                    #     ordersC.append(Order(product, best_ask, LOT_SIZE))
-                    #     print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
-                    #     ordersC.append(Order(product, best_ask, LOT_SIZE))
-
-                    # else:
+                if TPC > UB:
                     LOT_SIZE = int((600 - current_position))
-                    best_ask = int(min(min(order_depthC.sell_orders.keys()), acceptable_price + 3.4 * price_adjustment))
+                    best_ask = int(min(min(order_depthC.sell_orders.keys()), 0.4*(min(order_depthC.buy_orders.keys())-TPC)+TPC))
                     print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
                     ordersC.append(Order(product, best_ask, LOT_SIZE))
                     
-                elif signal < 0:
+                elif TPC < LB:
                     LOT_SIZE = int((600 + current_position))
-                    best_bid =  max(TP - 0.2*(TP-max(order_depthC.buy_orders.keys())), max(order_depthC.buy_orders, key=order_depthC.buy_orders.get))
+                    best_bid =  max(TPC - 0.2*(TPC-max(order_depthC.buy_orders.keys())), max(order_depthC.buy_orders, key=order_depthC.buy_orders.get))
                     print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
                     ordersC.append(Order(product, best_bid, -LOT_SIZE))
                     
              
                 result[product] = ordersC
 
-            elif product == 'PINA_COLADAS':
+            # elif product == 'PINA_COLADAS':
 
-                ordersPi: list[Order] = []
+            #     ordersPi: list[Order] = []
 
-                order_depthPi: OrderDepth = state.order_depths[product]
+            #     order_depthPi: OrderDepth = state.order_depths[product]
 
-                if (len(position) == 0) or (product not in position.keys()):
-                    current_position = 0
-                else:
-                    current_position = position[product]
+            #     if (len(position) == 0) or (product not in position.keys()):
+            #         current_position = 0
+            #     else:
+            #         current_position = position[product]
 
-                c1 = 12
-                c2 = 26
-                c3 = 9
+            #     c1 = 12
+            #     c2 = 26
+            #     c3 = 9
 
-                m = int(state.timestamp / 100)
+            #     m = int(state.timestamp / 100)
 
-                TP2 = float(min(order_depthPi.sell_orders.keys()) + max(order_depthPi.buy_orders.keys())) / 2
-                TP_list2.append(TP2)
+            #     TP2 = float(min(order_depthPi.sell_orders.keys()) + max(order_depthPi.buy_orders.keys())) / 2
+            #     TP_list2.append(TP2)
 
-                EMAlong2, EMAshort2, macd2, signal2 = macd_signal(n1, n2, n3, m, TP, TP_list, EMAlong_list, EMAshort_list, macd_list)
+            #     if m > c2:
+            #         SMAlong2 = np.mean(TP_list2[m - c2 - 1:m])
+            #     else:
+            #         SMAlong2 = TP2
 
-                EMAlong_list2.append(EMAlong2)
-                EMAshort_list2.append(EMAshort2)
-                macd_list2.append(macd2)
+            #     SMAlong_list2.append(SMAlong2)
+
+            #     #print(SMAlong2)
+
+            #     if m > c1:
+            #         SMAshort2 = np.mean(TP_list2[m - c1 - 1:m])
+
+            #     else:
+            #         SMAshort2 = TP2
+            #     SMAshort_list2.append(SMAshort2)
+
+            #     #print(SMAshort2)
+
+            #     k2 = 2 / (c2 + 1)
+            #     k1 = 2 / (c1 + 1)
+
+            #     EMAlong2 = k2 * SMAlong2 + (1 - k2) * EMAlong_list2[m - 1]
+            #     EMAlong_list2.append(EMAlong2)
+            #     #print(EMAlong2)
+
+            #     EMAshort2 = k1 * SMAshort2 + (1 - k1) * EMAshort_list2[m - 1]
+            #     EMAshort_list2.append(EMAshort2)
+            #     #print(EMAshort2)
+
+            #     macd2 = EMAshort2 - EMAlong2
+            #     macd_list2.append(macd2)
+
+            #     if m > c3:
+            #         macd_signal2 = np.mean(macd_list2[m - c3 - 1:m])
+            #     else:
+            #         macd_signal2 = macd_list2[m - 1]
+
+            #     s2 = macd2 - macd_signal2
 
            
-                print(f"TPPi {TP2} signal {signal2} EMAshort {EMAshort2} EMAlong {EMAlong2} macd_signal")
+            #     print(f"TPPi {TP2} signal {s2} EMAshort {EMAshort2} EMAlong {EMAlong2} macd_signal {macd_signal2}")
 
-                if m > n2:
-                    price_adjustment2 = np.std(SMAlong_list[m-n2-1:m]) / math.sqrt(26)
-                else:
-                    price_adjustment2 = np.std(SMAlong_list)
-                acceptable_price2 = TP2
+            #     price_adjustment2 = np.std(SMAlong_list2[m-c2-1:m]) / math.sqrt(26)
+            #     acceptable_price2 = TP2
 
-                if signal2 > 0:
-                    LOT_SIZE = int((300 - current_position))
-                    best_ask = int(min(min(order_depthPi.sell_orders.keys()), acceptable_price2 + 3.3 * price_adjustment2))
-                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
-                    ordersPi.append(Order(product, best_ask, LOT_SIZE))
+            #     if macd2 - macd_signal2 > 0:
+            #         LOT_SIZE = int((300 - current_position))
+            #         best_ask = int(min(min(order_depthPi.sell_orders.keys()), acceptable_price2 + 3.3 * price_adjustment2))
+            #         print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
+            #         ordersPi.append(Order(product, best_ask, LOT_SIZE))
 
                     
-                elif signal2 < 0:
-                    LOT_SIZE = int((300 + current_position))
-                    best_bid = int(max(max(order_depthPi.buy_orders.keys()), acceptable_price2 - 3 * price_adjustment2))
-                    print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
-                    ordersPi.append(Order(product, best_bid, -LOT_SIZE))
+            #     elif macd2 - macd_signal2 < 0:
+            #         LOT_SIZE = int((300 + current_position))
+            #         best_bid = int(max(max(order_depthPi.buy_orders.keys()), acceptable_price2 - 3 * price_adjustment2))
+            #         print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
+            #         ordersPi.append(Order(product, best_bid, -LOT_SIZE))
 
-                result[product] = ordersPi
+            #     result[product] = ordersPi
 
         return result

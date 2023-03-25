@@ -1,6 +1,7 @@
 from typing import Dict, List
 from datamodel import OrderDepth, TradingState, Order
 import numpy as np
+import math
 
 position_limit = []
 last_buy =[0]
