@@ -229,31 +229,22 @@ class Trader:
 
                 min_ask = min(order_depthC.sell_orders.keys())
 
-<<<<<<< HEAD
                 max_bid = max(order_depthC.buy_orders.keys())
 
                 print(f"Current time is {m} product is {product} TP is {TPC} UB is {UB} LB is {LB} min_ask is {min_ask} max_bid is {max_bid}")
 
                 if TPC < LB:
                     LOT_SIZE = int((600 - current_position))
-                    best_ask =  min(order_depthC.sell_orders.keys()) #int(min(min(order_depthC.sell_orders.keys()), 0.4*(min(order_depthC.sell_orders.keys())-TPC)+TPC))
+                    best_ask =  int(min(min(order_depthC.sell_orders.keys()), 0.4*(min(order_depthC.sell_orders.keys())-TPC)+TPC))
                     print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
                     ordersC.append(Order(product, best_ask, LOT_SIZE))
                     
                 elif TPC > UB:
-=======
-                if TPC > UB:
->>>>>>> 694fd0d1bb11e8a3d1e41cffbd84578c59905b4d
                     LOT_SIZE = int((600 + current_position))
-                    best_bid = max(order_depthC.buy_orders.keys()) #max(TPC - 0.2*(TPC-max(order_depthC.buy_orders.keys())), max(order_depthC.buy_orders, key=order_depthC.buy_orders.get))
+                    best_bid = max(TPC - 0.2*(TPC-max(order_depthC.buy_orders.keys())), max(order_depthC.buy_orders, key=order_depthC.buy_orders.get))
                     print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
                     ordersC.append(Order(product, best_bid, -LOT_SIZE))
                     
-                elif TPC < LB:
-                    LOT_SIZE = int((600 - current_position))
-                    best_ask = int(min(min(order_depthC.sell_orders.keys()), 0.4*(min(order_depthC.buy_orders.keys())-TPC)+TPC))
-                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
-                    ordersC.append(Order(product, best_ask, LOT_SIZE))
                     
              
                 result[product] = ordersC

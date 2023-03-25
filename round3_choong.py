@@ -106,6 +106,9 @@ banana = Banana()
 
 prev_position = 0
 TP_listC = []
+TP_listPi=[]
+TP_listM =[]
+TP_listD =[]
 
 class Trader:
 
@@ -117,6 +120,12 @@ class Trader:
         # Initialize the method output dict as an empty dict
         result = {}
         position = state.position
+        n = 20
+        m = int(state.timestamp/100)
+        print(f"current time is {m}")
+                
+        print(position.keys())
+        print(position.values())
 
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
@@ -213,13 +222,6 @@ class Trader:
                 TPC = float(min(order_depthC.sell_orders.keys()) + max(order_depthC.buy_orders.keys()))/2
                 TP_listC.append(TPC)
 
-                n = 20
-                m = int(state.timestamp/100)
-                print(f"current time is {m}")
-                
-                print(position.keys())
-                print(position.values())
-
                 SMAC = find_SMA(n, m, TPC, TP_listC)
 
                 UB, LB = bollinger_band(n, m, SMAC, TP_listC, 1.7)
@@ -237,7 +239,6 @@ class Trader:
                     best_ask = int(TPC)
                     print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
                     ordersC.append(Order(product, best_ask, LOT_SIZE))
-                    
              
                 result[product] = ordersC
 
@@ -252,6 +253,27 @@ class Trader:
                 else:
                     current_position = position[product]
 
+                TPPi = float(min(order_depthPi.sell_orders.keys()) + max(order_depthPi.buy_orders.keys()))/2
+                TP_listPi.append(TPPi)
+
+                SMAPi = find_SMA(n, m, TPPi, TP_listPi)
+
+                UB, LB = bollinger_band(n, m, SMAPi, TP_listPi, 1.5)
+
+                print(f"{product} TP: {TPPi} UB: {UB} LB: {LB}")
+
+                if TPPi > UB:
+                    LOT_SIZE = int((300 + current_position))
+                    best_bid = int(TPPi)
+                    print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
+                    ordersPi.append(Order(product, best_bid, -LOT_SIZE))
+                    
+                elif TPPi < LB:
+                    LOT_SIZE = int((300 - current_position))
+                    best_ask = int(TPPi)
+                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
+                    ordersPi.append(Order(product, best_ask, LOT_SIZE))
+
                 result[product] = ordersPi
             
             elif product == 'BERRIES':
@@ -264,6 +286,26 @@ class Trader:
                 else:
                     current_position = position[product]
                     
+                TPM = float(min(order_depthM.sell_orders.keys()) + max(order_depthM.buy_orders.keys()))/2
+                TP_listM.append(TPM)
+
+                SMAM = find_SMA(n, m, TPM, TP_listM)
+
+                UB, LB = bollinger_band(n, m, SMAM, TP_listM, 1.7)
+
+                print(f"{product} TP: {TPM} UB: {UB} LB: {LB}")
+
+                if TPM > UB:
+                    LOT_SIZE = int((25 + current_position))
+                    best_bid = int(TPM)
+                    print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
+                    ordersM.append(Order(product, best_bid, -LOT_SIZE))
+                    
+                elif TPM < LB:
+                    LOT_SIZE = int((25 - current_position))
+                    best_ask = int(TPM)
+                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
+                    ordersM.append(Order(product, best_ask, LOT_SIZE))
                 
                 result[product] = ordersM
                 
@@ -276,6 +318,27 @@ class Trader:
                     current_position = 0
                 else:
                     current_position = position[product]
+                    
+                TPD = float(min(order_depthD.sell_orders.keys()) + max(order_depthD.buy_orders.keys()))/2
+                TP_listD.append(TPD)
+
+                SMAD = find_SMA(n, m, TPD, TP_listD)
+
+                UB, LB = bollinger_band(n, m, SMAD, TP_listD, 1.2)
+
+                print(f"{product} TP: {TPD} UB: {UB} LB: {LB}")
+
+                if TPD > UB:
+                    LOT_SIZE = int((250 + current_position))
+                    best_bid = int(TPD)
+                    print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
+                    ordersD.append(Order(product, best_bid, -LOT_SIZE))
+                    
+                elif TPD < LB:
+                    LOT_SIZE = int((250 - current_position))
+                    best_ask = int(TPD)
+                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
+                    ordersD.append(Order(product, best_ask, LOT_SIZE))
                     
                 result[product] = ordersD
                     
