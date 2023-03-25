@@ -218,24 +218,28 @@ class Trader:
                 TPC = float(min(order_depthC.sell_orders.keys()) + max(order_depthC.buy_orders.keys()))/2
                 TP_listC.append(TPC)
 
-                n = 20
+                n = 10
                 m = int(state.timestamp/100)
 
                 SMAC = find_SMA(n, m, TPC, TP_listC)
 
-                UB, LB = bollinger_band(n, m, SMAC, TP_listC, 1.7)
+                UB, LB = bollinger_band(n, m, SMAC, TP_listC, 2.5)
 
-                print(f"{product} TP: {TPC} UB: {UB} LB: {LB}")
+                min_ask = min(order_depthC.sell_orders.keys())
 
-                if TPC > UB:
+                max_bid = max(order_depthC.buy_orders.keys())
+
+                print(f"Current time is {m} product is {product} TP is {TPC} UB is {UB} LB is {LB} min_ask is {min_ask} max_bid is {max_bid}")
+
+                if TPC < LB:
                     LOT_SIZE = int((600 - current_position))
-                    best_ask = int(min(min(order_depthC.sell_orders.keys()), 0.4*(min(order_depthC.buy_orders.keys())-TPC)+TPC))
+                    best_ask =  min(order_depthC.sell_orders.keys()) #int(min(min(order_depthC.sell_orders.keys()), 0.4*(min(order_depthC.sell_orders.keys())-TPC)+TPC))
                     print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
                     ordersC.append(Order(product, best_ask, LOT_SIZE))
                     
-                elif TPC < LB:
+                elif TPC > UB:
                     LOT_SIZE = int((600 + current_position))
-                    best_bid =  max(TPC - 0.2*(TPC-max(order_depthC.buy_orders.keys())), max(order_depthC.buy_orders, key=order_depthC.buy_orders.get))
+                    best_bid = max(order_depthC.buy_orders.keys()) #max(TPC - 0.2*(TPC-max(order_depthC.buy_orders.keys())), max(order_depthC.buy_orders, key=order_depthC.buy_orders.get))
                     print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
                     ordersC.append(Order(product, best_bid, -LOT_SIZE))
                     
