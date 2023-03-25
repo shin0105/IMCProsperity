@@ -3,6 +3,7 @@ from datamodel import OrderDepth, TradingState, Order
 import numpy as np
 import math
 
+#functions
 def get_mid_price(orders: dict, is_weighted: bool = False):
     mid_price = 0
     num_quantities = 0
@@ -20,6 +21,23 @@ def get_mid_price(orders: dict, is_weighted: bool = False):
 
     return mid_price
 
+def find_SMA(n, m, TP, TP_list):
+    if m>n:
+        SMA = np.mean(TP_list[m-n-1:m])
+                    
+    else:
+        SMA = TP
+    return SMA
+
+def bollinger_band(n, m, SMA, TP_list, d):
+    if m>n:
+        UB = SMA + d*np.std(TP_list[m-n-1:m])
+        LB = SMA - d*np.std(TP_list[m-n-1:m])
+    else:
+        SMA = TP_list[m]
+        UB = SMA + d*np.std(TP_list)
+        LB = SMA - d*np.std(TP_list)
+    return UB, LB
 
 """
 Constants
@@ -87,6 +105,7 @@ pearl = Pearl()
 banana = Banana()
 
 prev_position = 0
+TP_listC = []
 
 class Trader:
 
@@ -101,8 +120,7 @@ class Trader:
 
         # Iterate over all the keys (the available products) contained in the order depths
         for product in state.order_depths.keys():
-            print(position.keys())
-            print(position.values())
+            
             # Check if the current product is the 'PEARLS' product, only then run the order logic
             if product == 'PEARLS':
                 ordersP: List[Order] = []
@@ -136,12 +154,12 @@ class Trader:
                     ordersP.append(Order(product, best_bid, max_sell_volume))
                     result[product] = ordersP
 
-                    print(
-                        f"Product: {product}/ Position: {current_position}\n"
-                        f"BUY at price {best_ask} with volume {max_buy_volume}\n"
-                        f"Sell at price {best_bid} with volume {max_sell_volume}\n"
-                    )
-                    print("")
+                    # print(
+                    #     f"Product: {product}/ Position: {current_position}\n"
+                    #     f"BUY at price {best_ask} with volume {max_buy_volume}\n"
+                    #     f"Sell at price {best_bid} with volume {max_sell_volume}\n"
+                    # )
+                    # print("")
 
             elif product == 'BANANAS':
                 ordersB: List[Order] = []
@@ -174,11 +192,11 @@ class Trader:
                     ordersB.append(Order(product, best_bid, max_sell_volume))
                     result[product] = ordersB
 
-                    print(
-                        f"\nProduct: {product}/ Position: {current_position}\n"
-                        f"BUY at price {best_ask} with volume {max_buy_volume}\n"
-                        f"Sell at price {best_bid} with volume {max_sell_volume}\n"
-                    )
+                    # print(
+                    #     f"\nProduct: {product}/ Position: {current_position}\n"
+                    #     f"BUY at price {best_ask} with volume {max_buy_volume}\n"
+                    #     f"Sell at price {best_bid} with volume {max_sell_volume}\n"
+                    # )
                 result[product] = ordersB
 
             elif product == 'COCONUTS':
@@ -191,6 +209,34 @@ class Trader:
                     current_position = 0
                 else:
                     current_position = position[product]
+                
+                TPC = float(min(order_depthC.sell_orders.keys()) + max(order_depthC.buy_orders.keys()))/2
+                TP_listC.append(TPC)
+
+                n = 20
+                m = int(state.timestamp/100)
+                print(f"current time is {m}")
+                
+                print(position.keys())
+                print(position.values())
+
+                SMAC = find_SMA(n, m, TPC, TP_listC)
+
+                UB, LB = bollinger_band(n, m, SMAC, TP_listC, 1.7)
+
+                print(f"{product} TP: {TPC} UB: {UB} LB: {LB}")
+
+                if TPC > UB:
+                    LOT_SIZE = int((600 + current_position))
+                    best_bid = int(TPC)
+                    print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
+                    ordersC.append(Order(product, best_bid, -LOT_SIZE))
+                    
+                elif TPC < LB:
+                    LOT_SIZE = int((600 - current_position))
+                    best_ask = int(TPC)
+                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
+                    ordersC.append(Order(product, best_ask, LOT_SIZE))
                     
              
                 result[product] = ordersC
