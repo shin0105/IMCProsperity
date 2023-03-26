@@ -214,8 +214,10 @@ class Trader:
                 SMAC = find_SMA(n, m, TPC, TP_listC)
 
                 UB, LB = bollinger_band(n, m, SMAC, TP_listC, 1.7)
+                best_bid = min(order_depthM.sell_orders.keys()) 
+                best_ask = max(order_depthM.buy_orders.keys())
 
-                print(f"{product} TP: {TPC} UB: {UB} LB: {LB}")
+                print(f"Current time is {m} product is {product} TP is {TPC} UBC is {UB} LBC is {LB} min_askC is {best_bid} max_bidC is {best_ask}")
 
                 if TPC > UB:
                     LOT_SIZE = int((600 + current_position))
@@ -252,8 +254,10 @@ class Trader:
                 SMAPi = find_SMA(n, m, TPPi, TP_listPi)
 
                 UB, LB = bollinger_band(n, m, SMAPi, TP_listPi, 1.5)
+                best_bid = min(order_depthM.sell_orders.keys()) 
+                best_ask = max(order_depthM.buy_orders.keys())
 
-                print(f"{product} TP: {TPPi} UB: {UB} LB: {LB}")
+                print(f"Current time is {m} product is {product} TP is {TPPi} UBPi is {UB} LBPi is {LB} min_askPi is {best_bid} max_bidPi is {best_ask}")
 
                 if TPPi > UB:
                     LOT_SIZE = int((300 + current_position))
@@ -285,8 +289,10 @@ class Trader:
                 SMAM = find_SMA(n, m, TPM, TP_listM)
 
                 UB, LB = bollinger_band(n, m, SMAM, TP_listM, 1.7)
+                best_bid = min(order_depthM.sell_orders.keys()) 
+                best_ask = max(order_depthM.buy_orders.keys())
 
-                print(f"{product} TP: {TPM} UB: {UB} LB: {LB}")
+                print(f"Current time is {m} product is {product} TP is {TPM} UBB is {UB} LBB is {LB} min_askB is {best_bid} max_bidB is {best_ask}")
 
                 if TPM > UB:
                     LOT_SIZE = int((250 + current_position))
@@ -318,21 +324,23 @@ class Trader:
                 SMAD = find_SMA(n, m, TPD, TP_listD)
 
                 UB, LB = bollinger_band(n, m, SMAD, TP_listD, 1.7)
+                best_bid = min(order_depthD.sell_orders.keys()) 
+                best_ask = max(order_depthD.buy_orders.keys())
 
-                print(f"{product} TP: {TPD} UB: {UB} LB: {LB}")
+                print(f"Current time is {m} product is {product} TP is {TPD} UBD is {UB} LBD is {LB} min_askD is {best_bid} max_bidD is {best_ask}")
 
                 if TPD > UB:
                     LOT_SIZE = int((50 + current_position))
                     best_bid = min(order_depthD.sell_orders.keys())
 
-                    print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
+                    print(f"{product} and {current_position} SELL diving at price {best_bid} with volume {LOT_SIZE}")
                     ordersD.append(Order(product, best_bid, -LOT_SIZE))
                     
                 elif TPD < LB:
                     LOT_SIZE = int((50 - current_position))
                     best_ask = max(order_depthD.buy_orders.keys())
 
-                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
+                    print(f"{product} and {current_position} BUY diving at price {best_ask} with volume {LOT_SIZE}")
                     ordersD.append(Order(product, best_ask, LOT_SIZE))
                     
                 result[product] = ordersD
