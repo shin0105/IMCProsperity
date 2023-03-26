@@ -31,7 +31,7 @@ def plot_moving_average(
             moving_averages_dict[window] = moving_averages
 
         plt.figure(figsize=(20, 10))
-        plt.title(f"product on {csv_file}")
+        plt.title(f"{product} on {csv_file}")
         plt.plot(timestamps[:num_samples], prices[:num_samples], label="Middle Price")
         for window in windows:
             moving_averages = moving_averages_dict[window]
@@ -56,7 +56,7 @@ def plot_trading_signals(csv_file: str, products: List[str], trading_signal_type
         trading_signal = trading_signal_wrapper(trading_signal_type)
         buy_signal, sell_signal = trading_signal(prices)
         plt.figure(figsize=(20, 10))
-        plt.title(f"product on {csv_file}")
+        plt.title(f"{product} on {csv_file}")
 
         # Plot prices, buy signals, and sell signals
         plt.plot(timestamps, prices, 'b-', alpha=0.3, label="Middle Price")
