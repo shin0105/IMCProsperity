@@ -4,27 +4,12 @@ import numpy as np
 import math
 
 #functions
-def get_mid_price(orders: dict, is_weighted: bool = False):
-    mid_price = 0
-    num_quantities = 0
-    prices = list(orders.keys())
-    quantities = list(orders.values())
-    for idx in range(len(orders)):
-        if is_weighted:
-            mid_price += prices[idx] * abs(quantities[idx])
-            num_quantities += abs(quantities[idx])
-        else:
-            mid_price += prices[idx]
-            num_quantities += 1
-
-    mid_price /= num_quantities
-
-    return mid_price
-
 def find_SMA(n, m, TP, TP_list):
     if m>n:
         SMA = np.mean(TP_list[m-n-1:])
                     
+    elif m==0:
+        SMA =0
     else:
         SMA = np.mean(TP_list)
     return SMA
@@ -78,6 +63,8 @@ class Banana:
     def update_moving_average(self):
         if len(self.prices_last_30) > 5:
             self.moving_average_5 = np.mean(self.prices_last_30[-5:])
+        elif len(self.prices_last_30)==0:
+            self.moving_average_5 = 0
         else:
             self.moving_average_5 = np.mean(self.prices_last_30)
         self.moving_average_30 = np.mean(self.prices_last_30)
@@ -258,8 +245,10 @@ class Trader:
                 if len(order_depthPi.sell_orders) > 0 and len(order_depthPi.buy_orders) > 0:
                     TPPi = float(min(order_depthPi.sell_orders.keys()) + max(order_depthPi.buy_orders.keys()))/2
                 else:
-                    TPPi = TP_listPi[m-1]
-
+                    TPPi = TP_listPi[m]
+                    
+                TP_listPi.append(TPPi)
+                
                 SMAPi = find_SMA(n, m, TPPi, TP_listPi)
 
                 UB, LB = bollinger_band(n, m, SMAPi, TP_listPi, 1.5)
@@ -300,13 +289,13 @@ class Trader:
                 print(f"{product} TP: {TPM} UB: {UB} LB: {LB}")
 
                 if TPM > UB:
-                    LOT_SIZE = int((25 + current_position))
+                    LOT_SIZE = int((250 + current_position))
                     best_bid = int(TPM)
                     print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
                     ordersM.append(Order(product, best_bid, -LOT_SIZE))
                     
                 elif TPM < LB:
-                    LOT_SIZE = int((25 - current_position))
+                    LOT_SIZE = int((250 - current_position))
                     best_ask = int(TPM)
                     print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
                     ordersM.append(Order(product, best_ask, LOT_SIZE))
@@ -333,14 +322,14 @@ class Trader:
                 print(f"{product} TP: {TPD} UB: {UB} LB: {LB}")
 
                 if TPD > UB:
-                    LOT_SIZE = int((250 + current_position))
+                    LOT_SIZE = int((50 + current_position))
                     best_bid = min(order_depthD.sell_orders.keys())
 
                     print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
                     ordersD.append(Order(product, best_bid, -LOT_SIZE))
                     
                 elif TPD < LB:
-                    LOT_SIZE = int((250 - current_position))
+                    LOT_SIZE = int((50 - current_position))
                     best_ask = max(order_depthD.buy_orders.keys())
 
                     print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
