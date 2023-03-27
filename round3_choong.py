@@ -90,10 +90,28 @@ class Banana:
                 self.position = 1
                 return self.position
 
+class Coconut:
+    def __init__(self):
+        self.last_buy = 0
+        self.last_sell = 0
+    
+    def update_last_buy(self,price):
+        self.last_buy = price
+    
+    def update_last_sell(self,price):
+        self.last_sell = price
+        
+    def get_last_buy(self):
+        return self.last_buy
+    
+    def get_last_sell(self):
+        return self.last_sell
 
 # Initialize class
 pearl = Pearl()
 banana = Banana()
+coconut = Coconut()
+
 
 prev_position = 0
 TP_listC = []
@@ -210,35 +228,29 @@ class Trader:
                     current_position = 0
                 else:
                     current_position = position[product]
-                
-                if len(order_depthC.sell_orders) > 0 and len(order_depthC.buy_orders) > 0:
-                    TPC = float(min(order_depthC.sell_orders.keys()) + max(order_depthC.buy_orders.keys()))/2
-                else:
-                    if m!=0:
-                        TPC = TP_listC[m-1]
-                TP_listC.append(TPC)
-
-                SMAC = find_SMA(n, m, TPC, TP_listC)
-
-                UB, LB = bollinger_band(n, m, SMAC, TP_listC, 1.7)
-                best_bid = min(order_depthM.sell_orders.keys()) 
-                best_ask = max(order_depthM.buy_orders.keys())
-
-                print(f"Current time is {m} product is {product} TP is {TPC} UBC is {UB} LBC is {LB} min_askC is {best_bid} max_bidC is {best_ask}")
-
-                if TPC > UB:
-                    LOT_SIZE = int((600 + current_position))
-                    best_bid = int(TPC)
-                    print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
-                    ordersC.append(Order(product, best_bid, -LOT_SIZE))
                     
-                elif TPC < LB:
-                    LOT_SIZE = int((600 - current_position))
-                    best_ask = int(TPC)
-                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
-                    ordersC.append(Order(product, best_ask, LOT_SIZE))
-             
-                result[product] = ordersC
+                best_ask = min(order_depthC.sell_orders.keys())
+                best_bid = max(order_depthC.buy_orders.keys())
+
+                best_ask_volume = order_depthC.sell_orders[best_ask]
+                best_bid_volume = order_depthC.buy_orders[best_bid]
+                
+                if m==0:
+                    ordersC.append(Order(product, best_ask, -best_ask_volume))
+                    coconut.update_last_buy(best_ask)
+                    ordersC.append(Order(product, best_bid, -best_bid_volume))
+                    coconut.update_last_sell(best_bid)
+                else:
+                    if best_bid - coconut.get_last_buy() > 5:
+                        ordersC.append(Order(product, best_bid, -best_bid_volume))
+                        coconut.update_last_sell(best_bid)
+                    if coconut.get_last_sell() - best_ask >5:
+                        ordersC.append(Order(product, best_ask, -best_ask_volume))
+                        coconut.update_last_buy(best_ask)
+                
+                print(f"best ask {best_ask} best bid {best_bid} askvol {best_ask_volume} bidvol {best_bid_volume}")
+                
+                result[product] = ordersC 
 
             elif product == 'PINA_COLADAS':
 
@@ -251,38 +263,7 @@ class Trader:
                 else:
                     current_position = position[product]
 
-                if len(order_depthPi.sell_orders) > 0 and len(order_depthPi.buy_orders) > 0:
-                    TPPi = float(min(order_depthPi.sell_orders.keys()) + max(order_depthPi.buy_orders.keys()))/2
-                else:
-                    if m!=0:
-                        TPPi = TP_listPi[m-1]
-                    
-                TP_listPi.append(TPPi)
                 
-                SMAPi = find_SMA(n, m, TPPi, TP_listPi)
-
-<<<<<<< HEAD
-                UB, LB = bollinger_band(n, m, SMAPi, TP_listPi, 1.7)
-=======
-                UB, LB = bollinger_band(n, m, SMAPi, TP_listPi, 1.5)
-                best_bid = min(order_depthM.sell_orders.keys()) 
-                best_ask = max(order_depthM.buy_orders.keys())
->>>>>>> 2200e26ed604ae7b69ee637eb9582631caefe5f4
-
-                print(f"Current time is {m} product is {product} TP is {TPPi} UBPi is {UB} LBPi is {LB} min_askPi is {best_bid} max_bidPi is {best_ask}")
-
-                if TPPi > UB:
-                    LOT_SIZE = int((300 + current_position))
-                    best_bid = int(TPPi)
-                    print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
-                    ordersPi.append(Order(product, best_bid, -LOT_SIZE))
-                    
-                elif TPPi < LB:
-                    LOT_SIZE = int((300 - current_position))
-                    best_ask = int(TPPi)
-                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
-                    ordersPi.append(Order(product, best_ask, LOT_SIZE))
-
                 result[product] = ordersPi
             
             elif product == 'BERRIES':
@@ -309,19 +290,19 @@ class Trader:
                 best_bid = min(order_depthM.sell_orders.keys()) 
                 best_ask = max(order_depthM.buy_orders.keys())
 
-                print(f"Current time is {m} product is {product} TP is {TPM} UBB is {UB} LBB is {LB} min_askB is {best_bid} max_bidB is {best_ask}")
+                #print(f"Current time is {m} product is {product} TP is {TPM} UBB is {UB} LBB is {LB} min_askB is {best_bid} max_bidB is {best_ask}")
 
                 if TPM > UB:
                     LOT_SIZE = int((250 + current_position))
                     best_bid = int(TPM)
-                    print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
-                    ordersM.append(Order(product, best_bid, -LOT_SIZE))
+                    # print(f"{product} and {current_position} SELL at price {best_bid} with volume {LOT_SIZE}")
+                    # ordersM.append(Order(product, best_bid, -LOT_SIZE))
                     
                 elif TPM < LB:
                     LOT_SIZE = int((250 - current_position))
                     best_ask = int(TPM)
-                    print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
-                    ordersM.append(Order(product, best_ask, LOT_SIZE))
+                    # print(f"{product} and {current_position} BUY at price {best_ask} with volume {LOT_SIZE}")
+                    # ordersM.append(Order(product, best_ask, LOT_SIZE))
                 
                 result[product] = ordersM
                 
@@ -348,21 +329,21 @@ class Trader:
                 best_bid = min(order_depthD.sell_orders.keys()) 
                 best_ask = max(order_depthD.buy_orders.keys())
 
-                print(f"Current time is {m} product is {product} TP is {TPD} UBD is {UB} LBD is {LB} min_askD is {best_bid} max_bidD is {best_ask}")
+                #print(f"Current time is {m} product is {product} TP is {TPD} UBD is {UB} LBD is {LB} min_askD is {best_bid} max_bidD is {best_ask}")
 
                 if TPD > UB:
                     LOT_SIZE = int((50 + current_position))
                     best_bid = int(TPD)
 
-                    print(f"{product} and {current_position} SELL diving at price {best_bid} with volume {LOT_SIZE}")
-                    ordersD.append(Order(product, best_bid, -LOT_SIZE))
+                    # print(f"{product} and {current_position} SELL diving at price {best_bid} with volume {LOT_SIZE}")
+                    # ordersD.append(Order(product, best_bid, -LOT_SIZE))
                     
                 elif TPD < LB:
                     LOT_SIZE = int((50 - current_position))
                     best_ask = int(TPD)
 
-                    print(f"{product} and {current_position} BUY diving at price {best_ask} with volume {LOT_SIZE}")
-                    ordersD.append(Order(product, best_ask, LOT_SIZE))
+                    # print(f"{product} and {current_position} BUY diving at price {best_ask} with volume {LOT_SIZE}")
+                    # ordersD.append(Order(product, best_ask, LOT_SIZE))
                     
                 result[product] = ordersD
                     
